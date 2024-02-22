@@ -20,6 +20,7 @@ The purpose of this website is to serve as an educational resource for individua
 * Password reset functionality
 * Live language translation feature
 * Categories or tags for organizing posts
+* Logging of error messages
 
 ## Installation
 
