@@ -8,4 +8,4 @@ flask_app = create_app()
 # Check if the script is being run directly
 if __name__ == '__main__':
     # Run the Flask application on port 5000
-    flask_app.runt(port=5000)
+    flask_app.run(port=5003)
