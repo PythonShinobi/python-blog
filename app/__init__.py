@@ -3,6 +3,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
+from flask_bootstrap import Bootstrap5
 
 # Import configuration settings from config.py.
 from config import Config
@@ -10,6 +12,10 @@ from config import Config
 # Initialize SQLAlchemy and migration engine.
 db = SQLAlchemy()
 migrate = Migrate()
+login_manager = LoginManager()  # Initialize login manager.
+# Specify the view function that Flask-Login should redirect users to when they need to log in.
+login_manager.login_view = 'auth.login'
+bootstrap = Bootstrap5()
 
 # Define a function to create the Flask application.
 def create_app(config_class=Config):
@@ -22,6 +28,17 @@ def create_app(config_class=Config):
     db.init_app(flask_app)
     # Initialize migration engine with the Flask application and SQLAlchemy instance.
     migrate.init_app(flask_app, db)
+    # Initialize login manager with the Flask application.
+    login_manager.init_app(flask_app)
+    # Initialize bootstrap with the Flask application.
+    bootstrap.init_app(flask_app)
+
+    # Register the authentication blueprint.
+    from app.auth import bp as auth_bp
+    flask_app.register_blueprint(auth_bp)
+    # Register the main blueprint.
+    from app.main import bp as main_bp
+    flask_app.register_blueprint(main_bp)
 
     return flask_app
 
