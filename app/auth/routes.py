@@ -1,4 +1,5 @@
 
+import sqlalchemy
 from flask import render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,14 +7,15 @@ from urllib.parse import urlsplit, urljoin
 
 from app import db
 from app.auth import bp
-from app.auth.forms import LoginForm, RegisterForm
+from app.auth.forms import LoginForm, RegisterForm, ResetPasswordRequestForm, ResetPasswordForm
 from app.models import User
+from app.auth.email import send_password_reset_email
 
 # Define a list of safe endpoints within your application.
 SAFE_ENDPOINTS = ['main.about', 'main.contact']
 
-def get_safe_next_page():
-    """ Returns the URL of the next page from the 'next' query parameter."""
+def _get_safe_next_page():
+    """ Return the URL of the next page from the 'next' query parameter."""
     next_page = request.args.get('next')  # Retrieve the URL from the 'next' key.
     if next_page:
         # Check if the next_page is a safe endpoint with the application.
@@ -83,7 +85,7 @@ def login():
         else:
             login_user(user)
             # Get the next page from the query parameters or session, ensuring its safety.
-            next_page = get_safe_next_page()
+            next_page = _get_safe_next_page()
             if not next_page:
                 # Retrieves and removes the value associated with the key 'next' from the session. If there is no such key 
                 # in the session, it returns the default value without raising an error.
@@ -97,3 +99,39 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('main.get_all_posts'))
+
+@bp.route('/reset-password-request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = db.session.scalar(sqlalchemy.select(User).where(User.email == form.email.data))
+        if user:
+            send_password_reset_email(user)
+            flash('Check your email for instructions to reset your password.')
+        else:
+            flash('Email does not exist')
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/reset_password_request.html', form=form)
+
+@bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+    
+    # Check if a user exists in the database after extracting their id from the token.
+    user = User.verify_reset_password_token(token)
+    if not user:
+        return redirect(url_for('main.index'))
+    
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Your Password has been reset')
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/reset_password.html', form=form)
