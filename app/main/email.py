@@ -14,6 +14,7 @@ PORT = os.getenv('MAIL_PORT')
 EMAIL = os.getenv('ADMIN_EMAIL')
 PASSWORD = os.getenv('ADMIN_EMAIL_PASSWORD')
 
+# The email is being sent by the application to the administrator.
 def _email(name, from_addr,  message):
     # Constructing the email message.
     msg = f"Subject: New Message\n\nName: {name}\nEmail: {from_addr}\nMessage: {message}"
