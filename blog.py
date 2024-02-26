@@ -1,9 +1,16 @@
 
+import sqlalchemy
+
 # Import the create_app function from the app module
-from app import create_app
+from app import create_app, db
+from app.models import User
 
 # Create the Flask application using the create_app function
 flask_app = create_app()
+
+@flask_app.shell_context_processor
+def make_shell_context():
+    return {'sqlalchemy': sqlalchemy, 'db': db, 'User': User}
 
 # Check if the script is being run directly
 if __name__ == '__main__':
