@@ -21,15 +21,29 @@
     <div class="row">
       <!-- Adding Flash message here for users trying to register twice -->
       {% with messages = get_flashed_messages() %}
-      {% if messages %}
-      {% for message in messages %}
-      <p class="flash">{{ message }}</p>
-      {% endfor %}
-      {% endif %}
+        {% if messages %}
+          {% for message in messages %}
+            {% if 'Check your email' in message %}
+                <p class="flash" style="color: green;">{{ message }}</p>
+            {% elif 'Your Password has been reset' in message %}
+                <p class="flash text-success">{{ message }}</p>
+            {% else %}
+                <p class="flash">{{ message }}</p>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
       {% endwith %}
       <div class="col-lg-8 col-md-10 mx-auto">
         <!--Rendering login form here-->
         {{render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        <p>
+          {{ 'Forgot Your Password?' }}
+          <a href="{{ url_for('auth.reset_password_request') }}" 
+          style="color: blue; text-decoration: underline;"
+          >
+          {{ 'Click to reset it' }}
+          </a>
+        </p>
       </div>
     </div>
   </div>
