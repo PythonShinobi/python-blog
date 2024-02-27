@@ -10,6 +10,7 @@ from flask_login import LoginManager
 from flask_bootstrap import Bootstrap5
 from flask_mail import Mail
 from flask_ckeditor import CKEditor
+from flask_gravatar import Gravatar
 
 # Import configuration settings from config.py.
 from config import Config
@@ -43,6 +44,17 @@ def create_app(config_class=Config):
     mail.init_app(flask_app)
     # Initialize flask_ckeditor with the Flask application.
     ckeditor.init_app(flask_app)
+    # Initialize Gravatar object with credentials
+    Gravatar(
+        flask_app,
+        size=100,
+        rating='g',
+        default='retro',
+        force_default=False,
+        force_lower=False,
+        use_ssl=False,
+        base_url=None
+    )
 
     # Register the authentication blueprint.
     from app.auth import bp as auth_bp
