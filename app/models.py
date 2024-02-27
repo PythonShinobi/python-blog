@@ -23,6 +23,8 @@ class User(UserMixin, db.Model):
     # The "author" refers to the author property in the BlogPost class.
     # This will act like a list of BlogPost objects attached to each User.
     posts = relationship('BlogPost', back_populates='author')
+    # Parent relationship: "comment_author" refers to the comment_author property in the Comment class.    
+    comments = relationship("Comment", back_populates="comment_author")
 
     # Define a representation method for easier debugging.
     def __repr__(self):
@@ -62,10 +64,25 @@ class BlogPost(db.Model):
     date: Mapped[str] = mapped_column(String(250), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
+    # Parent relationship to the comments
+    comments = relationship("Comment", back_populates="parent_post")    
 
     def __repr__(self) -> str:
         return f'{self.author}'
     
+# Create a table for the comments on the blog posts
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    # Child relationship:"users.id" The users refers to the tablename of the User class.
+    # "comments" refers to the comments property in the User class.
+    author_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.id"))
+    comment_author = relationship("User", back_populates="comments")
+    # Child Relationship to the BlogPosts
+    post_id: Mapped[str] = mapped_column(Integer, db.ForeignKey("blog_posts.id"))
+    parent_post = relationship("BlogPost", back_populates="comments")
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.get_or_404(User, user_id)
