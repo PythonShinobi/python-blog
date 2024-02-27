@@ -1,14 +1,14 @@
 
 from functools import wraps
 from datetime import date
-from flask import render_template, redirect, url_for, request, session, abort
+from flask import render_template, redirect, url_for, request, session, abort, flash
 from flask_login import current_user
 
 from app import db
 from app.main import bp
 from app.main.email import send_email
-from app.main.forms import CreatePostForm
-from app.models import BlogPost
+from app.main.forms import CreatePostForm, CommentForm
+from app.models import BlogPost, Comment
 
 def _admin_only(f):
     @wraps(f)
@@ -81,11 +81,26 @@ def delete_post(post_id):
     db.session.commit()
     return redirect(url_for('main.get_all_posts'))
 
-@bp.route('/post/<int:post_id>')
+@bp.route('/post/<int:post_id>', methods=["GET", "POST"])
 def show_post(post_id):
     # Retrieve a BlogPost from the database based on the post_id.
     requested_post = db.get_or_404(BlogPost, post_id)
-    return render_template('post.html', post=requested_post)
+    # Add the CommentForm to the route.
+    comment_form = CommentForm()
+    # Only allow logged-in users to comment on posts.
+    if comment_form.validate_on_submit():
+        if not current_user.is_authenticated:
+            flash('You need to login to comment')
+            return redirect(url_for('login'))
+        
+        new_comment = Comment(
+            text=comment_form.comment_text.data,
+            comment_author=current_user,
+            parent_post=requested_post
+        )
+        db.session.add(new_comment)
+        db.session.commit()
+    return render_template('post.html', post=requested_post, current_user=current_user, form=comment_form)
 
 @bp.route('/edit-post/<int:post_id>', methods=['GET', 'POST'])
 @_admin_only
