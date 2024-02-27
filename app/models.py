@@ -5,8 +5,9 @@ from time import time
 from flask import current_app
 from flask_login import UserMixin
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, String, Text
 from werkzeug.security import generate_password_hash
+from sqlalchemy.orm import relationship
 
 # Import the SQLAlchemy instance from the app module.
 from app import db, login_manager
@@ -19,10 +20,13 @@ class User(UserMixin, db.Model):
     name: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(100), unique=True)
     password: Mapped[str] = mapped_column(String(100))
+    # The "author" refers to the author property in the BlogPost class.
+    # This will act like a list of BlogPost objects attached to each User.
+    posts = relationship('BlogPost', back_populates='author')
 
     # Define a representation method for easier debugging.
     def __repr__(self):
-        return f'<User {self.username}>'  # Return a string representation of the User object.
+        return f'{self.name}'  # Return a string representation of the User object.
     
     def set_password(self, password):
         self.password = generate_password_hash(
@@ -44,6 +48,23 @@ class User(UserMixin, db.Model):
             return
         # Return a user with the obtained id from the User model.
         return db.session.get(User, id)
+    
+class BlogPost(db.Model):
+    __tablename__ = 'blog_posts'
+    # Define columns with their types and properties.
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # Create Foreign Key, "users.id" the users refers to the tablename of User.
+    author_id: Mapped[int] = mapped_column(Integer,  db.ForeignKey("users.id"))
+    # Create reference to the User object. The "posts" refers to the posts property in the User class.
+    author = relationship('User', back_populates='posts')
+    title: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
+    subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
+    date: Mapped[str] = mapped_column(String(250), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    img_url: Mapped[str] = mapped_column(String(250), nullable=False)
+
+    def __repr__(self) -> str:
+        return f'{self.author}'
     
 @login_manager.user_loader
 def load_user(user_id):
