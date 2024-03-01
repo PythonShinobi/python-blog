@@ -24,7 +24,7 @@ class User(UserMixin, db.Model):
     # This will act like a list of BlogPost objects attached to each User.
     posts = relationship('BlogPost', back_populates='author')
     # Parent relationship: "comment_author" refers to the comment_author property in the Comment class.    
-    comments = relationship("Comment", back_populates="comment_author")
+    comments = relationship("Comment", back_populates="comment_author", cascade="all, delete-orphan")
 
     # Define a representation method for easier debugging.
     def __repr__(self):
