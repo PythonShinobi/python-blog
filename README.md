@@ -48,7 +48,6 @@ pip install -r requirements.txt
 
 6.Initialize and migrate the database:
 
-flask db migrate
 flask db upgrade
 
 7.**Run the application:**
