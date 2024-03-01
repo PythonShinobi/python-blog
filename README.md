@@ -46,11 +46,16 @@ pip install -r requirements.txt
 
 5.**Set up environment variables (if necessary).**
 
-6.**Run the application:**
+6.Initialize and migrate the database:
+
+flask db migrate
+flask db upgrade
+
+7.**Run the application:**
 
 flask run
 
-7.**Access the application in your web browser at `http://localhost:5000`.**
+8.**Access the application in your web browser at `http://localhost:5000`.**
 
 ## Usage
 
